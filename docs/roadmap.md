@@ -140,20 +140,25 @@ Add rate limiting and velocity controls.
 
 ---
 
-## EPIC 7 — Background Worker
+## EPIC 7 — Webhooks
 
 ### Objective
-Introduce asynchronous processing for webhook delivery.
+Deliver signed webhook events with durable retry semantics.
 
 ### Deliverables
-- Worker loop
-- Delivery polling logic
-- Retry backoff implementation
+- Webhook Endpoint model
+- Webhook Event model
+- Webhook Delivery model
+- HMAC signing
+- Retry logic
+- Dead-letter behavior
 
 ### Done Looks Like
-- Worker fetches due deliveries
-- Retry metadata updated correctly
-- Worker restart does not lose state
+- Events persisted before delivery
+- HMAC signatures verifiable
+- Non-2xx responses retried
+- Dead-lettered after max attempts
+- Delivery logs queryable
 
 ---
 
@@ -175,25 +180,20 @@ Evaluate fraud risk deterministically before ML integration.
 
 ---
 
-## EPIC 9 — Webhooks
+## EPIC 9 — Background Worker
 
 ### Objective
-Deliver signed webhook events with durable retry semantics.
+Introduce asynchronous processing for webhook delivery.
 
 ### Deliverables
-- Webhook Endpoint model
-- Webhook Event model
-- Webhook Delivery model
-- HMAC signing
-- Retry logic
-- Dead-letter behavior
+- Worker loop
+- Delivery polling logic
+- Retry backoff implementation
 
 ### Done Looks Like
-- Events persisted before delivery
-- HMAC signatures verifiable
-- Non-2xx responses retried
-- Dead-lettered after max attempts
-- Delivery logs queryable
+- Worker fetches due deliveries
+- Retry metadata updated correctly
+- Worker restart does not lose state
 
 ---
 
