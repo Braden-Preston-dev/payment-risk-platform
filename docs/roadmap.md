@@ -46,10 +46,10 @@ Establish a reproducible local development environment.
 
 ---
 
-## EPIC 2 — Database Foundation
+## EPIC 2 — Database Foundation + Synthetic Data Generator
 
 ### Objective
-Introduce durable storage and migration management.
+Introduce durable storage, migration management, and test data generation.
 
 ### Deliverables
 - SQLAlchemy setup
@@ -58,12 +58,15 @@ Introduce durable storage and migration management.
   - tenants
   - api_keys
   - idempotency_keys
+- Synthetic data generator (transactions, payment intents, realistic test scenarios)
 
 ### Done Looks Like
 - Migrations run successfully
 - Tables created in Postgres
 - Database layer accessible from API
 - Tenant-scoped queries supported
+- Generator produces realistic test data for downstream testing
+- Can seed database with N transactions for validation
 
 ---
 
@@ -140,42 +143,7 @@ Add rate limiting and velocity controls.
 
 ---
 
-## EPIC 7 — Background Worker
-
-### Objective
-Introduce asynchronous processing for webhook delivery.
-
-### Deliverables
-- Worker loop
-- Delivery polling logic
-- Retry backoff implementation
-
-### Done Looks Like
-- Worker fetches due deliveries
-- Retry metadata updated correctly
-- Worker restart does not lose state
-
----
-
-## EPIC 8 — Fraud Engine (Rules-Based)
-
-### Objective
-Evaluate fraud risk deterministically before ML integration.
-
-### Deliverables
-- Rule evaluation engine
-- Risk scoring
-- Risk assessment persistence
-- Decision mapping (allow/review/block)
-
-### Done Looks Like
-- Fraud decision stored per payment attempt
-- Decision influences payment outcome
-- Triggered rules persisted
-
----
-
-## EPIC 9 — Webhooks
+## EPIC 7 — Webhooks
 
 ### Objective
 Deliver signed webhook events with durable retry semantics.
@@ -197,14 +165,46 @@ Deliver signed webhook events with durable retry semantics.
 
 ---
 
+## EPIC 8 — Fraud Engine (Rules-Based)
+
+### Objective
+Evaluate fraud risk deterministically before ML integration.
+
+### Deliverables
+- Rule evaluation engine
+- Risk scoring
+- Risk assessment persistence
+- Decision mapping (allow/review/block)
+
+### Done Looks Like
+- Fraud decision stored per payment attempt
+- Decision influences payment outcome
+- Triggered rules persisted
+
+---
+
+## EPIC 9 — Background Worker
+
+### Objective
+Introduce asynchronous processing for webhook delivery.
+
+### Deliverables
+- Worker loop
+- Delivery polling logic
+- Retry backoff implementation
+
+### Done Looks Like
+- Worker fetches due deliveries
+- Retry metadata updated correctly
+- Worker restart does not lose state
+
 ## EPIC 10 — ML Integration
 
 ### Objective
-Introduce ML-based fraud scoring.
+Leverage synthetic data to train and integrate ML-based fraud scoring.
 
 ### Deliverables
-- Synthetic dataset generation
-- Baseline model training
+- Baseline model training on synthetic dataset (from EPIC 2)
 - Inference integration
 - Risk score override logic
 
