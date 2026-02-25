@@ -3,6 +3,9 @@
 This roadmap outlines the phased development plan for PRP.  
 Each epic builds incrementally toward a production-style, reliable backend system.
 
+The system evolves from a runnable infrastructure baseline into a realistic
+multi-tenant payment processor simulator with reliability guarantees.
+
 ---
 
 ## EPIC 0 — Project Framing (Complete)
@@ -11,12 +14,14 @@ Each epic builds incrementally toward a production-style, reliable backend syste
 Define the system contract, architecture, terminology, and implementation plan before writing production code.
 
 ### Deliverables
+
 - `spec.md`
 - `architecture.md`
 - `glossary.md`
 - `roadmap.md`
 
 ### Done Looks Like
+
 - Clear behavioral guarantees documented
 - High-level architecture diagram created
 - System boundaries and reliability model defined
@@ -24,12 +29,13 @@ Define the system contract, architecture, terminology, and implementation plan b
 
 ---
 
-## EPIC 1 — Local Infrastructure Bootstrapping
+## EPIC 1 — Local Infrastructure Bootstrapping (Complete)
 
 ### Objective
 Establish a reproducible local development environment.
 
 ### Deliverables
+
 - Repository structure
 - FastAPI application skeleton
 - Dockerfile for API
@@ -39,6 +45,7 @@ Establish a reproducible local development environment.
 - `.env.example`
 
 ### Done Looks Like
+
 - `docker compose up --build` boots successfully
 - `/health` returns `{ "status": "ok" }`
 - Postgres volume persists across restarts
@@ -52,17 +59,21 @@ Establish a reproducible local development environment.
 Introduce durable storage and migration management.
 
 ### Deliverables
+
 - SQLAlchemy setup
 - Alembic migrations
-- Core tables:
-  - tenants
-  - api_keys
-  - idempotency_keys
+
+Core tables:
+
+- `tenants`
+- `api_keys`
 
 ### Done Looks Like
+
 - Migrations run successfully
 - Tables created in Postgres
 - Database layer accessible from API
+- Transaction support working
 - Tenant-scoped queries supported
 
 ---
@@ -73,16 +84,24 @@ Introduce durable storage and migration management.
 Implement API key authentication and strict tenant isolation.
 
 ### Deliverables
+
 - API key middleware
 - Tenant context propagation
 - Tenant-scoped query enforcement
 - Cross-tenant access tests
 
+Basic logging:
+
+- Request ID generation
+- Consistent request logging
+
 ### Done Looks Like
+
 - Missing/invalid key → 401
 - Cross-tenant access → 404
 - All DB reads/writes include tenant_id filter
 - API keys stored hashed
+- Requests traceable via logs
 
 ---
 
@@ -92,17 +111,38 @@ Implement API key authentication and strict tenant isolation.
 Model PaymentIntent + Charge lifecycle with enforced state transitions.
 
 ### Deliverables
-- PaymentIntent model + endpoints
+
+Payment Models:
+
+- PaymentIntent model
 - Charge model
+
+Endpoints:
+
+- Create PaymentIntent
+- Confirm PaymentIntent
+- Retrieve PaymentIntent
+
+Core Logic:
+
 - Confirm logic
 - State machine validation
 - Transactional updates
 
+Fraud Stub:
+
+- Deterministic fraud decision stub (always allow)
+- Fraud decision hook point for future engine
+
 ### Done Looks Like
+
+- PaymentIntent created successfully
 - Confirm creates Charge attempt
 - Only one succeeded Charge allowed
 - Illegal transitions return 409
 - Multiple failed Charges allowed for retry
+- All operations tenant-scoped
+- Transactions prevent inconsistent state
 
 ---
 
@@ -112,14 +152,23 @@ Model PaymentIntent + Charge lifecycle with enforced state transitions.
 Make write endpoints safe under retries.
 
 ### Deliverables
+
+Database:
+
+- `idempotency_keys` table
+
+Infrastructure:
+
 - Idempotency middleware
 - Request fingerprint hashing
 - Response replay support
 
 ### Done Looks Like
+
 - Same key + same body → identical response
 - Same key + different body → 409
 - No duplicate Charges under concurrent retries
+- Stored responses replay correctly
 
 ---
 
@@ -129,36 +178,46 @@ Make write endpoints safe under retries.
 Add rate limiting and velocity controls.
 
 ### Deliverables
+
+- Redis client integration
 - Per-tenant rate limiting middleware
 - Velocity counters
 - TTL-based enforcement
 
 ### Done Looks Like
+
 - Exceeding limits returns 429
 - Redis unavailability → 503 (fail-closed)
 - Redis contains no durable state
+- Tenant isolation preserved
 
 ---
 
-## EPIC 7 — Webhooks
+## EPIC 7 — Background Jobs Framework
 
 ### Objective
-Deliver signed webhook events with durable retry semantics.
+Introduce a reliable background processing framework.
 
 ### Deliverables
-- Webhook Endpoint model
-- Webhook Event model
-- Webhook Delivery model
-- HMAC signing
-- Retry logic
-- Dead-letter behavior
+
+Worker Infrastructure:
+
+- Worker service boot logic
+- Database polling loop
+- Retry backoff implementation
+
+Reliability Guarantees:
+
+- Worker restart safety
+- No lost jobs
+- Idempotent processing
 
 ### Done Looks Like
-- Events persisted before delivery
-- HMAC signatures verifiable
-- Non-2xx responses retried
-- Dead-lettered after max attempts
-- Delivery logs queryable
+
+- Worker polls for pending jobs
+- Retry metadata updated correctly
+- Worker restart does not lose state
+- Failed jobs retried with backoff
 
 ---
 
@@ -168,32 +227,48 @@ Deliver signed webhook events with durable retry semantics.
 Evaluate fraud risk deterministically before ML integration.
 
 ### Deliverables
+
 - Rule evaluation engine
 - Risk scoring
 - Risk assessment persistence
 - Decision mapping (allow/review/block)
 
 ### Done Looks Like
+
 - Fraud decision stored per payment attempt
 - Decision influences payment outcome
 - Triggered rules persisted
+- Confirm flow integrates fraud engine
 
 ---
 
-## EPIC 9 — Background Worker
+## EPIC 9 — Webhooks
 
 ### Objective
-Introduce asynchronous processing for webhook delivery.
+Deliver signed webhook events with durable retry semantics.
 
 ### Deliverables
-- Worker loop
-- Delivery polling logic
-- Retry backoff implementation
+
+Models:
+
+- WebhookEndpoint model
+- WebhookEvent model
+- WebhookDelivery model
+
+Infrastructure:
+
+- HMAC signing
+- Retry logic
+- Dead-letter behavior
 
 ### Done Looks Like
-- Worker fetches due deliveries
-- Retry metadata updated correctly
-- Worker restart does not lose state
+
+- Events persisted before delivery
+- HMAC signatures verifiable
+- Non-2xx responses retried
+- Dead-lettered after max attempts
+- Delivery logs queryable
+- Worker delivers events reliably
 
 ---
 
@@ -203,15 +278,18 @@ Introduce asynchronous processing for webhook delivery.
 Introduce ML-based fraud scoring.
 
 ### Deliverables
-- Synthetic dataset generation
+
 - Baseline model training
+- Feature extraction
 - Inference integration
 - Risk score override logic
 
 ### Done Looks Like
-- Fraud decision can incorporate ML score
+
+- Fraud decision incorporates ML score
 - Model inference integrated into confirm flow
 - Deterministic + ML scoring coexist
+- Model inference latency acceptable
 
 ---
 
@@ -221,14 +299,32 @@ Introduce ML-based fraud scoring.
 Make the system production-grade in terms of reliability and debugging.
 
 ### Deliverables
-- Structured logging
-- Metrics counters
+
+Testing:
+
 - Integration tests
+- End-to-end payment flow tests
+
+Observability:
+
+- Structured logging improvements
+- Metrics counters
+
+Developer Experience:
+
 - Demo script
-- Cleanup + documentation polish
+- Example requests
+- Documentation polish
+
+Synthetic Data:
+
+- Dataset generation scripts
+- Realistic fraud scenarios
 
 ### Done Looks Like
+
 - End-to-end payment flow testable
 - Webhook delivery observable via logs
 - Failure modes reproducible
 - Project demo-ready for interviews
+- Synthetic dataset supports demos
