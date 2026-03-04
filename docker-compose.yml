@@ -25,7 +25,7 @@ services:
       - postgres
       - redis
     env_file:
-      - ./apps/api/.env.example
+      - .env
     volumes:
       - ./apps/api/app:/app/app:ro
 
