@@ -1,6 +1,5 @@
-from uuid import UUID as PyUUID, uuid4
+from uuid import UUID as PyUUID
 
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey, String
 
