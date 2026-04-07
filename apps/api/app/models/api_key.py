@@ -12,7 +12,7 @@ class APIKey(Base, IDMixin, TimestampMixin):
 
     tenant_id: Mapped[PyUUID] = mapped_column(
         ForeignKey("tenants.id", ondelete="CASCADE"),
-        unique=True,
+        index=True,
     )
 
     key_hash: Mapped[str] = mapped_column(
