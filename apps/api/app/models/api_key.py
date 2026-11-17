@@ -1,10 +1,11 @@
+from datetime import datetime
 from uuid import UUID as PyUUID
 
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, text
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String
 
 from app.db.base import Base
-from app.models.mixins import TimestampMixin, IDMixin
+from app.models.mixins import IDMixin, TimestampMixin
 
 
 class APIKey(Base, IDMixin, TimestampMixin):
@@ -21,7 +22,15 @@ class APIKey(Base, IDMixin, TimestampMixin):
         unique=True,
         index=True,
     )
-    # Represemts the first 8 characters of the API key for display purposes 
+    # Represents the first 8 characters of the API key for display purposes.
     prefix: Mapped[str] = mapped_column(String(8), nullable=False)
-
-    
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default=text("true"),
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

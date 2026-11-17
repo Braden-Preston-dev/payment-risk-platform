@@ -45,3 +45,21 @@ docker compose logs -f api
 # Run the API locally (from apps/api/)
 uvicorn app.main:app --reload
 ```
+
+## Tests
+
+```bash
+PYTHONPATH=apps/api .venv/bin/python -m pytest apps/api/tests
+```
+
+Set `TEST_DATABASE_URL` to an empty disposable Postgres database to include the
+migration downgrade/upgrade round-trip test.
+
+## Seed and demo
+
+```bash
+PYTHONPATH=apps/api .venv/bin/python -m app.seed
+API_KEY=<the printed key> .venv/bin/python scripts/demo.py
+.venv/bin/python scripts/generate_synthetic_data.py --rows 1000
+.venv/bin/python scripts/train_fraud_model.py synthetic_payments.csv
+```

@@ -1,0 +1,14 @@
+{
+  "model_type": "logistic_regression",
+  "version": 1,
+  "intercept": -4.0,
+  "weights": {
+    "amount_ratio": 4.0,
+    "velocity_ratio": 8.0,
+    "is_declined_method": 0.0
+  },
+  "training": {
+    "description": "Baseline model for the deterministic synthetic PRP scenarios",
+    "seed": 2026
+  }
+}
